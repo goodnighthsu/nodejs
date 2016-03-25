@@ -9,8 +9,8 @@ var output  = require('../output');
 var UserItem = require('../model/UserItem');
 
 router.route('/api/user/:id')
+    //Get User Info
     .get(function (req, res, next) {
-        console.log('user id: %s', req.params.id);
         var userId = req.params.id;
         var userSql = sql.select()
             .field('id')
@@ -32,70 +32,11 @@ router.route('/api/user/:id')
             }
         })
     })
-    .post(function (req, res, next)
-    {
-        var user = new UserItem();
-        var errorCode;
-        //Create User
-        //name
-        user.name = req.body.name;
-        //用户名字母开头6-255位
-        if (user.name == null)
-        {
-            errorCode = 10001;
-        }else if (!user.validateName(user.name)) {
-            errorCode = 10002;
-        }
-
-        //Password
-        user.password = req.body.password;
-        if (user.password == null)
-        {
-            errorCode = 10003;
-        }else if (!user.validatePassword(user.password))
-        {
-            errorCode = 10004;
-        }
-
-        user.password2 = req.body.password2;
-        if (user.password != user.password2)
-        {
-            errorCode = 10005;
-        }
-
-        if (errorCode != null)
-        {
-            res.json(output.error(errorCode));
-            return;
-        }
-        //
-        var createUserSql = sql.insert()
-            .into('Users_Table')
-            .set('userName', user.name)
-            .set('password', user.password);
-        dao.execute(createUserSql, res, function(error, result)
-        {
-            if (error)
-            {
-                if (error.errno == 1062){
-                    res.json(output.error(10006));
-                }else
-                {
-                    res.json(output.error());
-                }
-            }else
-            {
-                user.id = result.insertId;
-                res.json(output.success(user));
-            }
-        });
-    })
+    //Modify User
     .put(function (req, res, next)
     {
-        //Modify User
-        console.log('post userName: %s', req.body.userName);
         var user = new UserItem();
-        user.id = req.body.id;
+        user.id = req.params.id;
         user.name = req.body.name;
         user.password = req.body.password;
         user.mobile = req.body.mobile;
@@ -161,6 +102,92 @@ router.route('/api/user/:id')
                 res.json(output.success(user));
             }
         })
+    })
+    //Delete User
+    .delete(function(req, res, next)
+    {
+        var user = new UserItem();
+        user.id = req.params.id;
+        if (user.id == null)
+        {
+            res.json(output.error(10008));
+        }else
+        {
+            var deleteSql = sql.delete()
+                .from('Users_Table')
+                .where('id = ?', user.id);
+            dao.execute(deleteSql, res, function(error, result)
+            {
+                if (error)
+                {
+                    res.errorMessage(500, error.toString(0));
+                }else
+                {
+                    res.json(output.success(user));
+                }
+            })
+        }
+    });
+
+router.route('/api/user')
+    //Create User
+    .post(function (req, res, next)
+    {
+        var user = new UserItem();
+        var errorCode;
+        //Create User
+        //name
+        user.name = req.body.name;
+        //用户名字母开头6-255位
+        if (user.name == null)
+        {
+            errorCode = 10001;
+        }else if (!user.validateName(user.name)) {
+            errorCode = 10002;
+        }
+
+        //Password
+        user.password = req.body.password;
+        if (user.password == null)
+        {
+            errorCode = 10003;
+        }else if (!user.validatePassword(user.password))
+        {
+            errorCode = 10004;
+        }
+
+        user.password2 = req.body.password2;
+        if (user.password != user.password2)
+        {
+            errorCode = 10005;
+        }
+
+        if (errorCode != null)
+        {
+            res.json(output.error(errorCode));
+            return;
+        }
+        //
+        var createUserSql = sql.insert()
+            .into('Users_Table')
+            .set('userName', user.name)
+            .set('password', user.password);
+        dao.execute(createUserSql, res, function(error, result)
+        {
+            if (error)
+            {
+                if (error.errno == 1062){
+                    res.json(output.error(10006));
+                }else
+                {
+                    res.json(output.error());
+                }
+            }else
+            {
+                user.id = result.insertId;
+                res.json(output.success(user));
+            }
+        });
     });
 
 module.exports = router;

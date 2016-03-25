@@ -25,7 +25,7 @@ exports.error = function(errorCode)
             message = '邮件地址不正确';
             break
         case 10008:
-            message = ''
+            message = '用户ID不能为空';
         default:
             errorCode = 4000;
             message = '未知错误';
