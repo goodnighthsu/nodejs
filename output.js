@@ -23,9 +23,13 @@ exports.error = function(errorCode)
             break;
         case 10007:
             message = '邮件地址不正确';
-            break
+            break;
         case 10008:
             message = '用户ID不能为空';
+            break;
+        case 10009:
+            message = '手机格式不正确';
+            break;
         default:
             errorCode = 4000;
             message = '未知错误';

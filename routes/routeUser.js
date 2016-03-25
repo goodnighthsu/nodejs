@@ -11,7 +11,7 @@ var Q = require('q');
 
 router.route('/api/user/:id')
     //Get User Info
-    .get(function (req, res, next) {
+    .get(function (req, res) {
         var userId = req.params.id;
         var userSql = sql.select()
             .field('id')
@@ -20,10 +20,9 @@ router.route('/api/user/:id')
             .field('UNIX_TIMESTAMP(createDDate)', 'createdDate')
             .from('Users_Table')
             .where('id = ?', userId);
-        console.log('userSql: %s', userSql.toString());
-        dao.execute(userSql, res, function (error, result) {
+        dao.execute(userSql, function (error, result) {
             if (error) {
-                res.json(output.error(500, error.toString()));
+                res.json(output.error(error.errno, error.description));
             } else {
                 var data = {};
                 data['data'] = result;
@@ -31,15 +30,16 @@ router.route('/api/user/:id')
                 data['success'] = true;
                 res.json(data);
             }
-        })
+        });
     })
     //Modify User
-    .put(function (req, res, next) {
+    .put(function (req, res) {
         var user = new UserItem();
         user.id = req.params.id;
         user.name = req.body.name;
         user.password = req.body.password;
         user.mobile = req.body.mobile;
+        user.email = req.body.email;
 
         var errorCode;
         if (user.id == null) {
@@ -57,7 +57,13 @@ router.route('/api/user/:id')
         }
 
         //Mobile
-        if (user.mobile != null && user.validateMobile(user.mobile)) {
+        if (user.mobile != null && !user.validateMobile(user.mobile)) {
+            errorCode = 10009;
+        }
+
+        //Email
+        if (user.email != null && !user.validateEmail(user.email))
+        {
             errorCode = 10007;
         }
 
@@ -80,12 +86,12 @@ router.route('/api/user/:id')
             modifySql.set('mobile', user.mobile);
         }
 
-        dao.execute(modifySql, res, function (error, result) {
+        dao.execute(modifySql, function (error, result) {
             if (error) {
                 if (error.errno == 1062) {
                     res.json(output.error(10006));
                 } else {
-                    res.json(output.error());
+                    res.json(output.error(error.errno, error.description));
                 }
             } else {
                 res.json(output.success(user));
@@ -93,7 +99,7 @@ router.route('/api/user/:id')
         })
     })
     //Delete User
-    .delete(function (req, res, next) {
+    .delete(function (req, res) {
         var user = new UserItem();
         user.id = req.params.id;
         if (user.id == null) {
@@ -102,9 +108,9 @@ router.route('/api/user/:id')
             var deleteSql = sql.delete()
                 .from('Users_Table')
                 .where('id = ?', user.id);
-            dao.execute(deleteSql, res, function (error, result) {
+            dao.execute(deleteSql, function (error, result) {
                 if (error) {
-                    res.errorMessage(500, error.toString(0));
+                    res.errorMessage(error.errno, error.description);
                 } else {
                     res.json(output.success(user));
                 }
@@ -114,7 +120,7 @@ router.route('/api/user/:id')
 
 router.route('/api/user')
     //Create User
-    .post(function (req, res, next) {
+    .post(function (req, res) {
         var user = new UserItem();
         var errorCode;
         //Create User
@@ -151,36 +157,38 @@ router.route('/api/user')
         user.code = req.body.code;
 
         user.validateCode(user.mobile, user.zone, user.code).then(function (result) {
-                res.json(output.success(result.status));
+                createUser(user, function(error, result)
+                {
+                    if (error)
+                    {
+                        if (error.errno == 1062){
+                            res.json(output.error(10006));
+                        }else
+                        {
+                            res.json(output.error(error.errno, error.description));
+                        }
+                    }else
+                    {
+                        user.id = result.insertId;
+                        res.json(output.success(user));
+                    }
+                });
             },
             function (error) {
                 res.json(output.errorMessage(error.number, error.description));
-            }
-        );
+            });
     });
 
 //Create User
-function createUser(user)
+function createUser(user, callback)
 {
     var createUserSql = sql.insert()
         .into('Users_Table')
         .set('userName', user.name)
         .set('password', user.password);
-    dao.execute(createUserSql, res, function(error, result)
+    dao.execute(createUserSql, function(error, result)
     {
-        if (error)
-        {
-            if (error.errno == 1062){
-                res.json(output.error(10006));
-            }else
-            {
-                res.json(output.error());
-            }
-        }else
-        {
-            user.id = result.insertId;
-            res.json(output.success(user));
-        }
+        callback(error, result);
     });
 }
 

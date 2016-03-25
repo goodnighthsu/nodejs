@@ -8,15 +8,14 @@ var pool = mysql.createPool(
         password        : 'mywebdb',
         database        : 'MyWebDB'
     }
-)
+);
 
-var execute = function(sql, res, callback) {
+var execute = function(sql, callback) {
     pool.getConnection(function (err, connection)
     {
         if (err)
         {
             console.log('error: %s', err);
-            res.status(500);
             callback(err, null);
         }else
         {
@@ -26,6 +25,7 @@ var execute = function(sql, res, callback) {
             }
             connection.query(sql, function(error, rows, fields)
             {
+                connection.release();
                 if (error) {
                     callback(error, null);
                 } else {
@@ -34,6 +34,6 @@ var execute = function(sql, res, callback) {
             });
         }
     });
-}
+};
 
 exports.execute = execute;

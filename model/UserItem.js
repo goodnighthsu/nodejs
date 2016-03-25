@@ -12,6 +12,7 @@ module.exports = function UserItem()
     this.password;
     this.password2; //第二次输入的密码
     this.mobile;
+    this.email;
     this.zone;      //区号没有+号 86
     this.code;      //验证码
 
@@ -26,7 +27,7 @@ module.exports = function UserItem()
         }
 
         return true;
-    }
+    };
 
     //Validate password
     this.validatePassword = function(password){
@@ -37,7 +38,7 @@ module.exports = function UserItem()
         }
 
         return true;
-    }
+    };
 
     //Validate Mobile
     this.validateMobile = function(mobile)
@@ -49,7 +50,7 @@ module.exports = function UserItem()
         }
 
         return true;
-    }
+    };
 
     //Validate Email
     this.validateEmail = function(email)
@@ -61,7 +62,7 @@ module.exports = function UserItem()
         }
 
         return true;
-    }
+    };
 
     //Validate Code
     this.validateCode = function(phone, zone, code)
@@ -143,10 +144,9 @@ module.exports = function UserItem()
         req.on('error', function(error)
         {
             deffered.reject(error);
-        })
+        });
         req.write(postData);
         req.end();
         return deffered.promise;
     }
-}
-
+};
