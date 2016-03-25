@@ -1,6 +1,10 @@
 /**
  * Created by leon on 16/3/24.
  */
+var http  = require('http');
+var querystring = require('querystring');
+var Q = require('q');
+
 module.exports = function UserItem()
 {
     this.id;
@@ -8,6 +12,8 @@ module.exports = function UserItem()
     this.password;
     this.password2; //第二次输入的密码
     this.mobile;
+    this.zone;      //区号没有+号 86
+    this.code;      //验证码
 
     //Validate name
     this.validateName = function(userName)
@@ -56,4 +62,91 @@ module.exports = function UserItem()
 
         return true;
     }
+
+    //Validate Code
+    this.validateCode = function(phone, zone, code)
+    {
+        var postData =
+        {
+            'appkey':'10e806b993b98',
+            'phone':phone,
+            'zone':zone,
+            'code':code
+        };
+
+        postData = querystring.stringify(postData);
+        //
+        var options =
+        {
+            host: 'webapi.sms.mob.com',
+            path: '/sms/verify',
+            method: 'POST',
+            header: {
+                'Content-Type': 'application/x-www-form-urlencode',
+                'Content-Length': postData.length
+            }
+        };
+
+        var deffered = Q.defer();
+        var req = http.request(options, function(response){
+            var body = '';
+            response.on('data', function(data)
+            {
+                body += data;
+            });
+
+            response.on('end', function()
+            {
+                body = JSON.parse(body);
+                if (body.status == 200)
+                {
+                    deffered.resolve(body);
+                }else
+                {
+                    var error = new Error();
+                    error.number = body.status;
+                    var message;
+                    switch (body.status)
+                    {
+                        case 405:
+                            message = 'AppKey为空';
+                            break;
+                        case 406:
+                            message = 'AppKey无效';
+                            break;
+                        case 456:
+                            message = '国家代码或手机号码为空';
+                            break;
+                        case 457:
+                            message = '手机号码格式错误';
+                            break;
+                        case 466:
+                            message = '请求校验的验证码为空';
+                            break;
+                        case 467:
+                            message = '请求校验验证码频繁';
+                            break;
+                        case 468:
+                            message = '验证码错误';
+                            break;
+                        case 474:
+                            message = '没有打开服务端验证开关';
+                            break;
+                    }
+
+                    error.description = message;
+                    deffered.reject(error);
+                }
+            });
+        });
+
+        req.on('error', function(error)
+        {
+            deffered.reject(error);
+        })
+        req.write(postData);
+        req.end();
+        return deffered.promise;
+    }
 }
+
