@@ -16,6 +16,20 @@ module.exports = function UserItem()
     this.zone;      //区号没有+号 86
     this.code;      //验证码
 
+    //Parse with Json
+    UserItem.ParseWithJSON = function(json)
+    {
+        var user = new UserItem();
+        user.name = json.userName;
+        user.password = json.password;
+        user.mobile  = json.mobile;
+        user.email = json.email;
+        user.zone = json.zone;
+        user.code = json.code;
+
+        return user;
+    };
+
     //Validate name
     this.validateName = function(userName)
     {
@@ -105,7 +119,7 @@ module.exports = function UserItem()
                 }else
                 {
                     var error = new Error();
-                    error.number = body.status;
+                    error.errno = body.status;
                     var message;
                     switch (body.status)
                     {

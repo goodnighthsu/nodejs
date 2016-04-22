@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var routeUser = require('./routeUser');
+var loginRoute = require('./loginRoute');
 
 var routes = function(app)
 {
@@ -12,6 +13,8 @@ var routes = function(app)
 
     // api/user
     app.use(routeUser);
+    //login
+    app.use(loginRoute);
 };
 
 module.exports = routes;

@@ -11,6 +11,7 @@ var pool = mysql.createPool(
 );
 
 var execute = function(sql, callback) {
+    console.log('sql: %s', sql.toString());
     pool.getConnection(function (err, connection)
     {
         if (err)
