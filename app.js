@@ -2,6 +2,8 @@ var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
+var FileStreamRotator = require('file-stream-rotator')
+var fs = require('fs')
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var config = require('./config');
@@ -17,7 +19,21 @@ app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
+
+//Logger
+var logDir = __dirname + '/log';
+fs.existsSync(logDir) || fs.mkdirSync(logDir);
+var accessLogStream = FileStreamRotator.getStream({
+  date_formate: 'YYYYMMDD',
+  filename: logDir + '/access-%DATE%.log',
+  frequency: 'daily',
+  verbose: false
+})
+logger.token('reqBody', function(req, res){
+  return JSON.stringify(req.body);
+});
+app.use(logger(':date[iso] :remote-addr - :url :method :reqBody', {stream: accessLogStream}));
+//
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -56,6 +72,5 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
 
 module.exports = app;

@@ -104,7 +104,9 @@ router.route('/api/user/:id')
             }
         })
     })
-    //Delete User
+    /**Delete User
+     * 删除用户
+     */
     .delete(function (req, res) {
         var user = new UserItem();
         user.id = req.params.id;

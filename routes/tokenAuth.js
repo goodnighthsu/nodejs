@@ -13,7 +13,6 @@ var tokenAuth = function(req, res, next)
     {
         try {
             var decode = jwt.decode(token, req.app.get('JWTSecrete'));
-            console.log('expires: %s', decode.expires);
             if (decode.expires < Date.now())
             {
                 res.formatOutput(10002, 'Token expires');

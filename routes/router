@@ -10,7 +10,6 @@ var routes = function(app)
         res.render('index', { title: 'Express' });
     });
     app.use(router);
-
     // api/user
     app.use(routeUser);
     //login
