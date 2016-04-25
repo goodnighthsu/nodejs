@@ -79,7 +79,7 @@ router.route('/api/user/:id')
             modifySql.set('userName', user.name);
         }
         if (user.password != null) {
-            modifySql.set('password', user.password);
+            modifySql.set('password', user.passwordMD5());
         }
 
         if (user.mobile != null) {
@@ -187,13 +187,17 @@ router.route('/api/user')
             });
     });
 
-//Create User
+/**Create User
+ * 在数据库内插入用户
+ * @param user 插入的用户
+ * @param callback 插入回调
+ */
 function createUser(user, callback)
 {
     var createUserSql = sql.insert()
         .into('Users_Table')
         .set('userName', user.name)
-        .set('password', user.password);
+        .set('password', user.passwordMD5);
     dao.execute(createUserSql, function(error, result)
     {
         callback(error, result);

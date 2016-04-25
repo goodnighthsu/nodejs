@@ -20,6 +20,8 @@ router.route('/api/login')
         user.name = req.body.name;
         user.password = req.body.password;
 
+        user.passwordMD5();
+
         if (user.name == null) {
             res.formatOutput(10001, '用户名不能为空');
         }
@@ -30,7 +32,7 @@ router.route('/api/login')
 
         var userSql = sql.select()
             .from('Users_Table')
-            .where('userName = ? && password = ?', user.name, user.password);
+            .where('userName = ? && password = ?', user.name, user.passwordMD5());
         console.log('userSql: %s', userSql.toString());
         dao.execute(userSql, function (error, result) {
             if (error) {

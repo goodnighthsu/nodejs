@@ -3,18 +3,19 @@
  */
 var http  = require('http');
 var querystring = require('querystring');
+var crypto  = require('crypto');
 var Q = require('q');
 
-module.exports = function UserItem()
+function UserItem()
 {
     this.id;
     this.name;
     this.password;
-    this.password2; //第二次输入的密码
+    this.password2;     //第二次输入的密码
     this.mobile;
     this.email;
-    this.zone;      //区号没有+号 86
-    this.code;      //验证码
+    this.zone;          //区号没有+号 86
+    this.code;          //验证码
 
     //Parse with Json
     UserItem.ParseWithJSON = function(json)
@@ -164,3 +165,12 @@ module.exports = function UserItem()
         return deffered.promise;
     }
 };
+
+UserItem.prototype.passwordMD5 = function()
+{
+    var md5 = crypto.createHash('md5');
+    var password = md5.update(this.password).digest('base64');
+    return password;
+}
+
+module.exports = UserItem;
