@@ -20,14 +20,14 @@ router.route('/api/login')
         user.name = req.body.name;
         user.password = req.body.password;
 
-        user.passwordMD5();
-
         if (user.name == null) {
             res.formatOutput(10001, '用户名不能为空');
+            return;
         }
 
-        if (user.password == null) {
+        if (user.passwordMD5() == null) {
             res.formatOutput(10002, '密码不能为空');
+            return;
         }
 
         var userSql = sql.select()

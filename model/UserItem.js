@@ -168,6 +168,10 @@ function UserItem()
 
 UserItem.prototype.passwordMD5 = function()
 {
+    if (this.password == null){
+        return null;
+    }
+
     var md5 = crypto.createHash('md5');
     var password = md5.update(this.password).digest('base64');
     return password;
